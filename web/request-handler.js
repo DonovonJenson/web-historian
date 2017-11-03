@@ -12,6 +12,7 @@ var send404Response = function(response) {
 };
 
 exports.handleRequest = function (req, res) {
+   
   if (req.method === 'GET' && req.url === '/') {
     httpHelper.serveAssets (res, path.join(__dirname, './public/index.html'), (data) => {
       res.writeHead(200);
@@ -23,10 +24,18 @@ exports.handleRequest = function (req, res) {
       body += chunk;
     });
     req.on ('end', () => {
-      archive.addUrlToList (body);
+      var tempURL = body.slice (4, body.length);
+      archive.isUrlArchived (tempURL, (input) => {
+        console.log (input);
+      });
+      archive.isUrlInList(tempURL, (boolean) => {
+        if (!boolean) {
+          archive.addUrlToList (body);
+          archive.downloadUrls (tempURL);
+        }
+      });
     });
   } else {
     send404Response(res);
   }
-  archive.isUrlInList();
 };
