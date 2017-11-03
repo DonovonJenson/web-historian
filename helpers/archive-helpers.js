@@ -32,14 +32,14 @@ exports.readListOfUrls = (callback) => {
     if (err) {
       throw Error;
     } else {
-      callback(data);
+      callback(data.split('\n'));
     }
   });
 };
 
 exports.isUrlInList = function(url, callback) {
   this.readListOfUrls(function(data) {
-    var urls = data.split('url=');
+    var urls = data;
     var contains;
     var contains = urls.indexOf(url) === -1 ? false : true;
     callback (contains);
@@ -49,7 +49,7 @@ exports.isUrlInList = function(url, callback) {
 exports.addUrlToList = function(url, callback) {
   this.isUrlInList(url, (boolean) => {
     if (!boolean) {
-      fs.appendFile(this.paths.list, url, 'utf8', callback);
+      fs.appendFile(this.paths.list, url + '\n', 'utf8', callback);
     }
   });
 };
@@ -65,7 +65,8 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urls) {
-  var file = fs.openSync(`${this.paths.archivedSites}/${urls}`, 'w');
-  fs.closeSync(file);
-  request ('http://' + urls).pipe(fs.createWriteStream(this.paths.archivedSites + '/' + url));
+  _.each(urls, function (url) {
+    if (!url) { return; }
+    request('http://' + url).pipe(fs.createWriteStream(exports.paths.archivedSites + '/' + url));
+  });
 };
